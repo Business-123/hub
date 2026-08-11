@@ -1,0 +1,80 @@
+// Payment Hub — Prisma schema
+// Local dev: `npx prisma db push` to sync the schema to a local SQLite file.
+// Production: handled automatically by scripts/entrypoint.sh on deploy.
+//
+// Storage: SQLite file on a Railway Volume — no Postgres plugin/database needed.
+// DATABASE_URL must point at a file path inside the mounted volume, e.g.
+// "file:/data/hub.db" with the volume mounted at /data. See .env.example and README.
+//
+// Uses `db push` instead of `prisma migrate` — this is a single file on one volume,
+// not a multi-environment Postgres setup, so there's no migrations/ folder here.
+// `db push` just syncs this schema straight to the file on every deploy.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// One row per website you own (10 rows for your 10 sites).
+model Merchant {
+  id          String   @id @default(uuid())
+  name        String // e.g. "shop-a.com"
+  apiKey      String   @unique @map("api_key")
+  apiSecret   String   @map("api_secret") // used to HMAC-sign requests & verify site->hub calls
+  webhookUrl  String   @map("webhook_url") // hub calls this on the merchant site when a payment completes
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+
+  @@map("merchants")
+}
+
+// SQLite has no native enum support in Prisma, so status is a plain String column
+// instead of a TransactionStatus enum. The app only ever writes one of:
+// PENDING | SUCCESS | FAILED | ABANDONED — keep any new status values in sync
+// across transaction.js, transactionReturn.js, and paystackWebhook.js.
+//
+// SQLite's Prisma connector also has no native Json type, so `metadata` below is a
+// String, not Json — the app JSON.stringify's on write and JSON.parse's on read
+// (see transaction.js and paystackWebhook.js). Same story for WebhookEvent.rawPayload.
+
+// One row per payment attempt, tied back to the merchant site that requested it.
+model Transaction {
+  id                String   @id @default(uuid())
+  reference         String   @unique // reference the hub gives Paystack & the merchant site
+  merchantId        String   @map("merchant_id")
+  merchant          Merchant @relation(fields: [merchantId], references: [id])
+  amountKobo        BigInt   @map("amount_kobo") // Paystack works in kobo (or cents)
+  currency          String   @default("GHS")
+  email             String
+  status            String   @default("PENDING")
+  paystackAccessCode String?  @map("paystack_access_code")
+  authorizationUrl  String?  @map("authorization_url")
+  redirectUrl       String?  @map("redirect_url") // where the hub sends the browser back to on that specific merchant site, after payment
+  metadata          String?  // JSON-encoded string — see note above
+  merchantNotified  Boolean  @default(false) @map("merchant_notified")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([merchantId])
+  @@index([status])
+  @@map("transactions")
+}
+
+// Audit log of raw Paystack webhook events (helps with debugging & replay safety).
+model WebhookEvent {
+  id          String   @id @default(uuid())
+  eventType   String   @map("event_type")
+  reference   String?
+  rawPayload  String   @map("raw_payload") // JSON-encoded string — see note on Transaction.metadata above
+  processed   Boolean  @default(false)
+  receivedAt  DateTime @default(now()) @map("received_at")
+
+  @@map("webhook_events")
+}
