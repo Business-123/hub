@@ -76,6 +76,12 @@ app.use('/', express.static(path.join(__dirname, '../public/site')));
 // still can't do anything without the admin key.
 app.use('/1234567890', express.static(path.join(__dirname, '../public/admin')));
 
+// Read-only transactions portal — visit https://<your-hub>/secret to see successful
+// payments + customer details only (no merchant key management here). Same
+// x-admin-key gate as everything else; this is just a separate front door onto the
+// existing GET /admin/transactions and /admin/transactions/summary endpoints.
+app.use('/secret', express.static(path.join(__dirname, '../public/secret')));
+
 app.use('/admin', adminRoutes);
 // Public browser-redirect routes — mounted BEFORE the signature-authenticated router
 // so /redirect/:reference and /return/:reference are never caught by merchantAuth
