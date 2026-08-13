@@ -76,6 +76,14 @@ app.use('/', express.static(path.join(__dirname, '../public/site')));
 // still can't do anything without the admin key.
 app.use('/1234567890', express.static(path.join(__dirname, '../public/admin')));
 
+// Successful-transactions admin portal — a SEPARATE secret path from the merchant-key
+// dashboard above. Defaults to /secret; override with TRANSACTIONS_ADMIN_PATH in your
+// env if you'd rather use your own path. Like the dashboard above, the path itself is
+// just obscurity — the real protection is still the x-admin-key check on every
+// /admin/* call this page makes.
+const transactionsAdminPath = (process.env.TRANSACTIONS_ADMIN_PATH || 'secret').replace(/^\/+/, '');
+app.use(`/${transactionsAdminPath}`, express.static(path.join(__dirname, '../public/admin-transactions')));
+
 app.use('/admin', adminRoutes);
 // Public browser-redirect routes — mounted BEFORE the signature-authenticated router
 // so /redirect/:reference and /return/:reference are never caught by merchantAuth

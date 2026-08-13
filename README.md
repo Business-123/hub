@@ -19,6 +19,7 @@ Site 10─┘            ▲
    - `PAYSTACK_SECRET_KEY` (from your Paystack dashboard, live or test)
    - `PAYSTACK_PUBLIC_KEY`
    - `ADMIN_API_KEY` — generate with `openssl rand -hex 32`, keep it private to you
+   - `TRANSACTIONS_ADMIN_PATH` — optional. Defaults to `secret` (i.e. `/secret`). Set this if you want the successful-transactions portal at a different path.
    - `ALLOWED_ORIGINS` — comma-separated list of your 10 site domains (only needed if calling from browser JS)
    - `HUB_PUBLIC_URL` — the Railway-assigned public URL of this service
 4. Railway runs `scripts/entrypoint.sh` automatically (see `railway.json`), which syncs the schema with `prisma db push` and creates `hub.db` on the volume the first time it deploys.
@@ -40,6 +41,23 @@ Startup runs through `scripts/entrypoint.sh` rather than calling Prisma directly
 ### Option A — Admin dashboard (easiest)
 
 Visit `https://<your-hub>.up.railway.app/1234567890`, enter your `ADMIN_API_KEY`, and use the form to connect each site. The API key + secret are shown once in a popup — copy them into that site's environment immediately.
+
+### Successful transactions portal (separate from the dashboard above)
+
+A second, separate admin page lists **only successful transactions** — reference, paying customer's email, amount, and which of your sites it belongs to — and lets you permanently delete an individual successful transaction record.
+
+It lives at a different path than the merchant dashboard above:
+
+```
+https://<your-hub>.up.railway.app/secret
+```
+
+(override the path via `TRANSACTIONS_ADMIN_PATH` if you'd rather use something else)
+
+It's gated by the same `ADMIN_API_KEY` as everything else. It calls two endpoints:
+
+- `GET /admin/transactions/successful` — list all `SUCCESS` transactions.
+- `DELETE /admin/transactions/:id` — delete one transaction, **only** if its status is `SUCCESS` (any other status is rejected with `409`).
 
 ### Option B — CLI script
 

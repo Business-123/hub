@@ -122,4 +122,64 @@ router.delete('/merchants/:id', async (req, res, next) => {
   }
 });
 
+// Serializes a transaction row for the successful-transactions admin view, including
+// the customer-facing "user detail" fields (email, amount, which merchant site, etc.)
+// but never any merchant apiKey/apiSecret.
+function serializeTransaction(tx) {
+  return {
+    id: tx.id,
+    reference: tx.reference,
+    status: tx.status,
+    email: tx.email,
+    amountKobo: tx.amountKobo.toString(),
+    amount: Number(tx.amountKobo) / 100,
+    currency: tx.currency,
+    merchant: tx.merchant ? { id: tx.merchant.id, name: tx.merchant.name } : null,
+    metadata: tx.metadata ? JSON.parse(tx.metadata) : null,
+    createdAt: tx.createdAt,
+    updatedAt: tx.updatedAt,
+  };
+}
+
+// Lists only SUCCESS transactions, newest first, with the paying customer's email
+// and which merchant site the payment belongs to. This is deliberately a separate
+// endpoint from a general transaction list — the admin portal that calls this only
+// ever needs to see completed payments, not every pending/failed attempt.
+router.get('/transactions/successful', async (req, res, next) => {
+  try {
+    const transactions = await prisma.transaction.findMany({
+      where: { status: 'SUCCESS' },
+      include: { merchant: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ status: true, data: transactions.map(serializeTransaction) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Deletes a transaction, but ONLY if it's a SUCCESS record — this endpoint backs the
+// "delete a successful one" action in the admin portal and intentionally refuses to
+// touch PENDING/FAILED/ABANDONED rows (there's no product reason to delete those from
+// here, and scoping the check server-side means a compromised/buggy admin UI can't be
+// used to quietly wipe other transaction history).
+router.delete('/transactions/:id', async (req, res, next) => {
+  try {
+    const transaction = await prisma.transaction.findUnique({ where: { id: req.params.id } });
+    if (!transaction) return res.status(404).json({ status: false, message: 'Not found' });
+
+    if (transaction.status !== 'SUCCESS') {
+      return res.status(409).json({
+        status: false,
+        message: `Only SUCCESS transactions can be deleted from this endpoint (this one is ${transaction.status}).`,
+      });
+    }
+
+    await prisma.transaction.delete({ where: { id: transaction.id } });
+    res.json({ status: true, message: `Transaction ${transaction.reference} deleted.` });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
