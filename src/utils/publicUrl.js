@@ -11,7 +11,10 @@
  * instead of failing silently for every customer at the worst possible moment.
  */
 function getHubPublicUrl() {
-  const raw = (process.env.HUB_PUBLIC_URL || '').trim();
+  // Fall back to the domain Railway injects automatically, so a forgotten HUB_PUBLIC_URL
+  // does not crash the whole hub at boot (which showed up as "Hub request failed").
+  const railwayDomain = (process.env.RAILWAY_PUBLIC_DOMAIN || '').trim();
+  const raw = (process.env.HUB_PUBLIC_URL || (railwayDomain ? `https://${railwayDomain}` : '')).trim();
 
   if (!raw) {
     throw new Error(

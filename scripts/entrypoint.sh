@@ -13,10 +13,9 @@
 set -e
 
 if [ -z "$DATABASE_URL" ]; then
-  echo "FATAL: DATABASE_URL is not set." >&2
-  echo "Set it in Railway -> this service -> Variables, to a file: URL pointing at" >&2
-  echo "your mounted volume, e.g.:  DATABASE_URL=file:/data/hub.db" >&2
-  exit 1
+  echo "WARNING: DATABASE_URL is not set. Defaulting to file:/data/hub.db (mount your Railway volume at /data)." >&2
+  mkdir -p /data 2>/dev/null || true
+  export DATABASE_URL="file:/data/hub.db"
 fi
 
 case "$DATABASE_URL" in

@@ -20,7 +20,7 @@ async function generateReference() {
 }
 
 // POST /api/v1/transaction/initialize
-// Body: { email, amount (in NAIRA, not kobo), currency?, metadata? }
+// Body: { email, amount (in major units, e.g. GHS, not pesewas), currency?, metadata? }
 // This is the ONLY endpoint your sites need to start a payment. The hub talks to
 // Paystack on your site's behalf and returns a checkout URL to redirect the customer to.
 router.post('/initialize', async (req, res, next) => {
@@ -59,6 +59,7 @@ router.post('/initialize', async (req, res, next) => {
       amountKobo,
       reference,
       callbackUrl,
+      currency,
       // Deliberately NOT forwarding `metadata`, merchantId, or merchantName to
       // Paystack. Paystack must only ever see this hub's own account — nothing
       // that identifies which of the 10 merchant sites a transaction belongs

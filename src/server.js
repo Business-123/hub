@@ -29,7 +29,10 @@ app.set('trust proxy', 1);
 // protections (X-Frame-Options, etc.) stay on. The dashboard itself is still gated
 // by the admin key, and every write it makes goes through the same authenticated
 // /admin/* endpoints as the CLI script.
-app.use(helmet({ contentSecurityPolicy: false }));
+// COOP must allow popups: Paystack's checkout opens secondary windows (3-D Secure, bank and
+// mobile-money authorisation) and reports the result back through window.opener. helmet's
+// default `same-origin` severs that link, so the payment never completes on the page.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' } }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);

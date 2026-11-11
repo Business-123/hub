@@ -24,12 +24,15 @@ const paystackClient = axios.create({
  * any of that site's own business data — see routes/transaction.js for where
  * that data is instead kept purely local to this hub's own database.
  */
-async function initializeTransaction({ email, amountKobo, reference, callbackUrl }) {
+async function initializeTransaction({ email, amountKobo, reference, callbackUrl, currency }) {
   const { data } = await paystackClient.post('/transaction/initialize', {
     email,
     amount: amountKobo, // Paystack expects the smallest currency unit (kobo/cents)
     reference,
     callback_url: callbackUrl,
+    // Send the currency explicitly so the charge is not at the mercy of the Paystack
+    // account's default currency (amounts here are GHS pesewas).
+    ...(currency ? { currency } : {}),
   });
   return data; // { status, message, data: { authorization_url, access_code, reference } }
 }

@@ -17,71 +17,12 @@ const ICONS = {
   redirect: `<svg viewBox="0 0 80 80" class="icon"><circle class="ring" cx="40" cy="40" r="36"/><path class="mark" d="M26 40 H50 M40 28 L52 40 L40 52"/></svg>`,
 };
 
-// Neutral palette — this hub serves many sites, so no site-specific branding.
 const ACCENTS = {
-  success: '#4caf84',
-  failed: '#ef5a5a',
-  pending: '#C78D10',
-  redirect: '#DFA51A',
+  success: '#16a34a',
+  failed: '#dc2626',
+  pending: '#b45309',
+  redirect: '#6f2dbd',
 };
-
-// Shared look for both interstitial pages — cream background, soft card, gold accent,
-// Inter font. Deliberately carries no site name or logo.
-const SHARED_HEAD = `<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<meta name="theme-color" content="#F8F5EF">`;
-
-const SHARED_CSS = `
-:root{
-  --accent:#DFA51A;
-  --background:#F8F5EF;--surface:#FFFDF9;--border:#E8E0D2;
-  --text:#1E1B18;--text-secondary:#756F67;
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-html,body{height:100%}
-body{
-  min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;
-  background:var(--background);color:var(--text);-webkit-font-smoothing:antialiased;
-}
-.card{
-  width:100%;max-width:360px;text-align:center;
-  display:flex;flex-direction:column;align-items:center;gap:22px;
-  padding:36px 28px 28px;
-  background:var(--surface);border:1px solid var(--border);border-radius:20px;
-  box-shadow:0 10px 24px rgba(68,52,30,.07);
-  animation:rise .5s cubic-bezier(.4,0,.2,1) both;
-}
-@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.icon-wrap{
-  width:92px;height:92px;border-radius:50%;
-  background:color-mix(in srgb,var(--status) 13%,transparent);
-  display:flex;align-items:center;justify-content:center;
-  animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
-}
-@supports not (background:color-mix(in srgb,red 10%,transparent)){.icon-wrap{background:rgba(223,165,26,.13)}}
-@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
-.icon{width:60px;height:60px}
-.ring{fill:none;stroke:var(--status);stroke-width:4;stroke-dasharray:226;stroke-dashoffset:226;
-  animation:ring .5s ease-out .1s forwards}
-@keyframes ring{to{stroke-dashoffset:0}}
-.mark{fill:none;stroke:var(--status);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
-  stroke-dasharray:60;stroke-dashoffset:60;animation:mark .35s ease-out .55s forwards}
-@keyframes mark{to{stroke-dashoffset:0}}
-h1{font-size:1.3rem;font-weight:700;letter-spacing:-.03em;color:var(--text);animation:fade .5s ease .5s both}
-.dots{display:flex;gap:6px;animation:fade .5s ease .7s both}
-.dots span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:bounce 1.1s ease-in-out infinite}
-.dots span:nth-child(2){animation-delay:.15s}
-.dots span:nth-child(3){animation-delay:.3s}
-@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-a.fallback{
-  font-size:.72rem;color:var(--text-secondary);text-decoration:underline;text-underline-offset:3px;
-  animation:fade .5s ease 1.4s both;
-}
-a.fallback:hover{color:var(--text)}
-`;
-
 
 // A short, calm, single-message interstitial — no destination URL, host, or
 // reference number shown. Just an animated status icon, one line of text, and an
@@ -102,15 +43,58 @@ function renderRedirectPage({ destinationUrl, icon, heading }) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="refresh" content="2.5;url=${safeUrl}">
 <title>${safeHeading}</title>
-${SHARED_HEAD}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--status:${accent}}${SHARED_CSS}</style>
+:root{--accent:${accent}}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
+html,body{height:100%}
+body{
+  min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;
+  background:#ffffff;
+}
+.card{
+  position:relative;text-align:center;color:#0f172a;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  background:#ffffff;
+  border:1px solid #eef0f4;
+  border-radius:20px;
+  padding:48px 40px 40px;
+  width:100%;max-width:340px;
+  box-shadow:0 10px 40px rgba(15,23,42,.06);
+  animation:rise .45s ease both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.icon-wrap{
+  width:96px;height:96px;border-radius:50%;
+  background:color-mix(in srgb, var(--accent) 10%, white);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 18%, white);
+  animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+.icon{width:56px;height:56px}
+.ring{fill:none;stroke:var(--accent);stroke-width:5;stroke-dasharray:226;stroke-dashoffset:226;
+  animation:ring .5s ease-out .1s forwards;}
+@keyframes ring{to{stroke-dashoffset:0}}
+.mark{fill:none;stroke:var(--accent);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:60;stroke-dashoffset:60;animation:mark .35s ease-out .55s forwards;}
+@keyframes mark{to{stroke-dashoffset:0}}
+h1{font-size:21px;font-weight:600;letter-spacing:.2px;color:#0f172a;animation:fade .5s ease .5s both}
+.bar{width:100%;height:4px;border-radius:2px;background:#f1f2f6;overflow:hidden;animation:fade .5s ease .6s both}
+.bar span{display:block;height:100%;width:40%;border-radius:2px;background:var(--accent);animation:load 2.5s ease forwards}
+@keyframes load{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+a.fallback{
+  font-size:12px;color:#94a3b8;text-decoration:underline;text-underline-offset:3px;
+  animation:fade .5s ease 1.4s both;white-space:nowrap;
+}
+</style>
 </head>
 <body>
 <div class="card">
 <div class="icon-wrap">${svg}</div>
 <h1>${safeHeading}</h1>
-<div class="dots"><span></span><span></span><span></span></div>
+<div class="bar"><span></span></div>
 <a class="fallback" href="${safeUrl}">Tap here if you're not redirected</a>
 </div>
 </body>
@@ -149,15 +133,58 @@ function renderCheckoutPopupPage({ accessCode, reference, fallbackUrl, heading }
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${safeHeading}</title>
-${SHARED_HEAD}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--status:${accent}}${SHARED_CSS}</style>
+:root{--accent:${accent}}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
+html,body{height:100%}
+body{
+  min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;
+  background:#ffffff;
+}
+.card{
+  position:relative;text-align:center;color:#0f172a;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  background:#ffffff;
+  border:1px solid #eef0f4;
+  border-radius:20px;
+  padding:48px 40px 40px;
+  width:100%;max-width:340px;
+  box-shadow:0 10px 40px rgba(15,23,42,.06);
+  animation:rise .45s ease both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.icon-wrap{
+  width:96px;height:96px;border-radius:50%;
+  background:color-mix(in srgb, var(--accent) 10%, white);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 18%, white);
+  animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+.icon{width:56px;height:56px}
+.ring{fill:none;stroke:var(--accent);stroke-width:5;stroke-dasharray:226;stroke-dashoffset:226;
+  animation:ring .5s ease-out .1s forwards;}
+@keyframes ring{to{stroke-dashoffset:0}}
+.mark{fill:none;stroke:var(--accent);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:60;stroke-dashoffset:60;animation:mark .35s ease-out .55s forwards;}
+@keyframes mark{to{stroke-dashoffset:0}}
+h1{font-size:21px;font-weight:600;letter-spacing:.2px;color:#0f172a;animation:fade .5s ease .5s both}
+.bar{width:100%;height:4px;border-radius:2px;background:#f1f2f6;overflow:hidden;animation:fade .5s ease .6s both}
+.bar span{display:block;height:100%;width:40%;border-radius:2px;background:var(--accent);animation:load 2.5s ease infinite}
+@keyframes load{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+a.fallback{
+  font-size:12px;color:#94a3b8;text-decoration:underline;text-underline-offset:3px;
+  animation:fade .5s ease 1.4s both;white-space:nowrap;
+}
+</style>
 </head>
 <body>
 <div class="card">
 <div class="icon-wrap">${svg}</div>
 <h1>${safeHeading}</h1>
-<div class="dots"><span></span><span></span><span></span></div>
+<div class="bar"><span></span></div>
 <a class="fallback" href="${safeFallback}">Tap here if nothing happens</a>
 </div>
 <script>
@@ -190,6 +217,9 @@ ${SHARED_HEAD}
       // the transaction is actually done (paid, closed, or errored).
       popup.resumeTransaction(accessCode, {
         onSuccess: goToReturn,
+        // Paystack InlineJS v2 reports a dismissed popup as onCancel (onClose is v1 only),
+        // so without this the customer stayed stuck on this page after closing checkout.
+        onCancel: goToReturn,
         onClose: goToReturn,
         onError: goToFallback,
       });
