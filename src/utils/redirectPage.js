@@ -190,6 +190,9 @@ ${SHARED_HEAD}
       // the transaction is actually done (paid, closed, or errored).
       popup.resumeTransaction(accessCode, {
         onSuccess: goToReturn,
+        // Paystack InlineJS v2 reports a dismissed popup as onCancel (onClose is v1 only),
+        // so without this the customer stayed stuck on this page after closing checkout.
+        onCancel: goToReturn,
         onClose: goToReturn,
         onError: goToFallback,
       });
